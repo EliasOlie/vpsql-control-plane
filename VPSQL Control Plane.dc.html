@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin:0; padding:0; background:#09090B; color:#EDEDED; }
+  * { box-sizing:border-box; }
+  a { color:#4BFF8F; text-decoration:none; }
+  a:hover { color:#8DFFBD; }
+  ::selection { background:rgba(75,255,143,.25); }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.09); border-radius:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  @keyframes vpsql-pulse { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+  @keyframes vpsql-spin { to { transform:rotate(360deg); } }
+  @keyframes vpsql-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;background:#09090B;font-family:Geist,'Helvetica Neue',Helvetica,sans-serif;color:#EDEDED;font-size:14px;letter-spacing:-0.01em">
+
+  <sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:100;background:#09090B;display:flex;align-items:center;justify-content:center;padding:32px 20px;overflow:auto">
+      <div style="position:absolute;top:-120px;left:50%;width:560px;height:360px;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(75,255,143,.14),transparent 70%);pointer-events:none"></div>
+      <div style="position:relative;width:100%;max-width:404px;display:flex;flex-direction:column;gap:22px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:26px;height:26px;border-radius:7px;background:#4BFF8F;box-shadow:0 0 22px -2px rgba(75,255,143,.7);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#04140B">V</div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;letter-spacing:.06em">VPSQL</span>
+          <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">control plane v0.4.2</span>
+        </div>
+
+        <div style="border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.028);backdrop-filter:blur(18px);box-shadow:0 0 70px -30px rgba(75,255,143,.5);overflow:hidden">
+          <div style="padding:20px 20px 4px;display:flex;flex-direction:column;gap:5px">
+            <h1 style="margin:0;font-size:17px;font-weight:600;letter-spacing:-.015em">Sign in to your node</h1>
+            <p style="margin:0;font-size:12.5px;color:#5A5A63">Credentials are validated against the local control-plane API. No external identity provider.</p>
+          </div>
+          <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Endpoint</span>
+              <input value="{{ loginEndpoint }}" onChange="{{ setEndpoint }}" placeholder="https://pg-sfo-01.internal:8080" style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#0C0C0F;color:#EDEDED;font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none" style-focus="border-color:rgba(75,255,143,.55);box-shadow:0 0 0 3px rgba(75,255,143,.1)" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Email</span>
+              <input value="{{ loginEmail }}" onChange="{{ setEmail }}" placeholder="dev@vpsql.io" style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#0C0C0F;color:#EDEDED;font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none" style-focus="border-color:rgba(75,255,143,.55);box-shadow:0 0 0 3px rgba(75,255,143,.1)" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="display:flex;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Password<a href="#" style="margin-left:auto;text-transform:none;letter-spacing:0;font-size:11.5px;color:#5A5A63">Use an API token</a></span>
+              <input type="password" value="{{ loginPassword }}" onChange="{{ setPassword }}" placeholder="••••••••••••" style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#0C0C0F;color:#EDEDED;font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none" style-focus="border-color:rgba(75,255,143,.55);box-shadow:0 0 0 3px rgba(75,255,143,.1)" />
+            </label>
+            <button type="button" onClick="{{ signIn }}" style="{{ signInStyle }}">{{ signInLabel }}</button>
+          </div>
+          <div style="padding:13px 20px;border-top:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.015);display:flex;align-items:center;gap:10px;overflow-x:auto;overflow-y:hidden">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#4BFF8F">$</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93;white-space:nowrap">{{ cliLogin }}</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">
+          <span style="width:5px;height:5px;border-radius:50%;background:#4BFF8F;box-shadow:0 0 8px #4BFF8F;animation:vpsql-pulse 2.4s ease-in-out infinite"></span>
+          <span>{{ nodeHost }} reachable · pg16.3 · single-node</span>
+          <a href="#" style="margin-left:auto;color:#5A5A63">Docs</a>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+
+  <aside style="width:236px;flex:0 0 236px;border-right:1px solid rgba(255,255,255,.07);padding:20px 14px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh">
+    <div style="display:flex;flex-direction:column;gap:12px;padding:0 6px">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="width:22px;height:22px;border-radius:6px;background:#4BFF8F;box-shadow:0 0 18px -2px rgba(75,255,143,.65);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:#04140B">V</div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;letter-spacing:.06em">VPSQL</span>
+        <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:#5A5A63">v0.4.2</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.025)">
+        <span style="width:6px;height:6px;border-radius:50%;background:#4BFF8F;box-shadow:0 0 8px #4BFF8F;animation:vpsql-pulse 2.4s ease-in-out infinite"></span>
+        <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#EDEDED;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nodeHost }}</span>
+          <span style="font-size:10px;color:#5A5A63">single-node · pg16.3</span>
+        </div>
+      </div>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:2px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#4E4E57;padding:0 8px 8px">Control plane</div>
+      <button type="button" onClick="{{ goDatabases }}" style="{{ navDatabases }}">Databases<span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#5A5A63">{{ dbCount }}</span></button>
+      <button type="button" onClick="{{ goRoles }}" style="{{ navRoles }}">Roles &amp; grants<span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#5A5A63">14</span></button>
+      <button type="button" onClick="{{ goActivity }}" style="{{ navActivity }}">Activity<span style="margin-left:auto;width:5px;height:5px;border-radius:50%;background:#FFB020"></span></button>
+      <button type="button" onClick="{{ goNode }}" style="{{ navNode }}">Node</button>
+    </nav>
+
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#4E4E57;padding:0 8px 8px">Projects</div>
+      <sc-for list="{{ projects }}" as="p" hint-placeholder-count="3">
+        <button type="button" onClick="{{ p.open }}" style="display:flex;align-items:center;gap:9px;width:100%;padding:7px 8px;border:0;background:transparent;color:#8A8A93;font-family:Geist,sans-serif;font-size:13px;text-align:left;border-radius:7px;cursor:pointer" style-hover="background:rgba(255,255,255,.04);color:#EDEDED">
+          <span style="width:5px;height:5px;border-radius:1px;background:{{ p.color }}"></span>{{ p.name }}
+          <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">{{ p.count }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:auto;display:flex;align-items:center;gap:9px;padding:8px 10px;border-top:1px solid rgba(255,255,255,.06)">
+      <span style="width:20px;height:20px;border-radius:5px;background:rgba(75,255,143,.14);border:1px solid rgba(75,255,143,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:#4BFF8F">{{ userInitial }}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8A8A93;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ loginEmail }}</span>
+      <button type="button" onClick="{{ signOut }}" style="margin-left:auto;border:0;background:transparent;color:#4E4E57;font-family:Geist,sans-serif;font-size:11.5px;cursor:pointer;padding:2px 4px" style-hover="color:#FF5C5C">Sign out</button>
+    </div>
+    <button type="button" onClick="{{ openPalette }}" style="display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px dashed rgba(255,255,255,.1);border-radius:9px;background:transparent;color:#5A5A63;font-family:Geist,sans-serif;font-size:12px;cursor:pointer" style-hover="border-color:rgba(75,255,143,.35);color:#4BFF8F">
+      Command palette
+      <kbd style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;color:#8A8A93">⌘K</kbd>
+    </button>
+  </aside>
+
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(9,9,11,.78);backdrop-filter:blur(14px)">
+      <div style="display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#5A5A63;min-width:0">
+        <span>vpsql</span><span style="color:#2F2F36">/</span><span style="color:#EDEDED;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ crumb }}</span>
+      </div>
+      <button type="button" onClick="{{ openPalette }}" style="margin-left:auto;display:flex;align-items:center;gap:10px;min-width:200px;padding:7px 10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.025);color:#5A5A63;font-family:Geist,sans-serif;font-size:12.5px;cursor:pointer" style-hover="border-color:rgba(255,255,255,.18)">
+        Search or run a command
+        <kbd style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px">⌘K</kbd>
+      </button>
+      <button type="button" onClick="{{ openModal }}" style="display:flex;align-items:center;gap:7px;padding:8px 13px;border:0;border-radius:8px;background:#4BFF8F;color:#04140B;font-family:Geist,sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 0 22px -6px rgba(75,255,143,.7)" style-hover="background:#8DFFBD">+ New database</button>
+    </header>
+
+    <div style="flex:1;padding:24px;max-width:1460px;width:100%">
+
+      <sc-if value="{{ isDatabases }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:20px;animation:vpsql-fade .18s ease">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+            <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025);backdrop-filter:blur(12px)">
+              <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Databases</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;margin-top:6px">06</div>
+            </div>
+            <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025);backdrop-filter:blur(12px)">
+              <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Connections</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;margin-top:6px">70<span style="font-size:13px;color:#5A5A63">/400</span></div>
+            </div>
+            <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025);backdrop-filter:blur(12px)">
+              <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Disk</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;margin-top:6px">47.4<span style="font-size:13px;color:#5A5A63"> GB</span></div>
+            </div>
+            <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025);backdrop-filter:blur(12px)">
+              <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">p99 latency</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;margin-top:6px;color:#4BFF8F">2.1<span style="font-size:13px;color:#5A5A63"> ms</span></div>
+            </div>
+          </div>
+
+          <div style="border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);backdrop-filter:blur(12px);overflow:hidden">
+            <div style="overflow-x:auto;overflow-y:hidden">
+            <div style="display:grid;grid-template-columns:minmax(200px,2.2fr) 110px 100px 110px minmax(120px,1fr) 88px;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:#4E4E57;min-width:820px">
+              <span>Database</span><span>Status</span><span>Size</span><span>Conns</span><span>Owner role</span><span>Created</span>
+            </div>
+            <sc-for list="{{ databases }}" as="db" hint-placeholder-count="6">
+              <div onClick="{{ db.open }}" style="display:grid;grid-template-columns:minmax(200px,2.2fr) 110px 100px 110px minmax(120px,1fr) 88px;gap:12px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.045);cursor:pointer;align-items:center;min-width:820px" style-hover="background:rgba(255,255,255,.035)">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                  <span style="width:6px;height:6px;border-radius:50%;background:{{ db.dot }};box-shadow:0 0 7px {{ db.dot }}"></span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ db.name }}</span>
+                  <span style="font-size:10px;color:#5A5A63;border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;flex:0 0 auto">{{ db.project }}</span>
+                </div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:{{ db.dot }}">{{ db.status }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93">{{ db.size }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93">{{ db.conns }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ db.owner }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#5A5A63">{{ db.created }}</span>
+              </div>
+            </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(255,255,255,.015)">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#4BFF8F">$</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93">{{ cliList }}</span>
+            <span style="margin-left:auto;font-size:11px;color:#4E4E57">same data, over the CLI</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:18px;animation:vpsql-fade .18s ease">
+          <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+            <button type="button" onClick="{{ goDatabases }}" style="padding:7px 10px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:transparent;color:#8A8A93;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer" style-hover="color:#EDEDED;border-color:rgba(255,255,255,.2)">←</button>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <h1 style="margin:0;font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:500;letter-spacing:-.01em">{{ db.name }}</h1>
+                <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:#4BFF8F;border:1px solid rgba(75,255,143,.3);background:rgba(75,255,143,.08);border-radius:5px;padding:2px 7px">● {{ db.status }}</span>
+              </div>
+              <div style="font-size:12px;color:#5A5A63">project {{ db.project }} · owner {{ db.owner }} · created {{ db.created }} · pg16.3</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button type="button" onClick="{{ copyPrimary }}" style="padding:8px 12px;border:1px solid rgba(75,255,143,.35);border-radius:8px;background:rgba(75,255,143,.07);color:#4BFF8F;font-family:Geist,sans-serif;font-size:12.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(75,255,143,.15)">{{ copyLabel }}</button>
+              <button type="button" style="padding:8px 12px;border:1px solid rgba(255,255,255,.09);border-radius:8px;background:transparent;color:#8A8A93;font-family:Geist,sans-serif;font-size:12.5px;cursor:pointer" style-hover="color:#FF5C5C;border-color:rgba(255,92,92,.4)">Drop</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:4px;border-bottom:1px solid rgba(255,255,255,.07)">
+            <button type="button" onClick="{{ tabOverview }}" style="{{ tabS0 }}">Overview</button>
+            <button type="button" onClick="{{ tabCreds }}" style="{{ tabS1 }}">Credentials</button>
+            <button type="button" onClick="{{ tabSchema }}" style="{{ tabS2 }}">Schema</button>
+            <button type="button" onClick="{{ tabLogs }}" style="{{ tabS3 }}">Logs</button>
+          </div>
+
+          <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:start">
+              <div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+                <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025)">
+                  <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Size on disk</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:22px;margin-top:6px">{{ db.size }}</div>
+                </div>
+                <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025)">
+                  <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Connections</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:22px;margin-top:6px">{{ db.conns }}</div>
+                </div>
+                <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025)">
+                  <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Tables</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:22px;margin-top:6px">{{ tableCount }}</div>
+                </div>
+                <div style="padding:14px 16px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.025)">
+                  <div style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">Roles</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:22px;margin-top:6px">02</div>
+                </div>
+              </div>
+
+              <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:600;letter-spacing:-.01em">Connection</div>
+                <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:#0C0C0F;overflow:hidden">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8DFFBD;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ adminUri }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">
+                  <span style="color:#4E4E57">host</span><span>{{ nodeHost }}</span>
+                  <span style="color:#4E4E57">port</span><span>5432</span>
+                  <span style="color:#4E4E57">sslmode</span><span>require</span>
+                  <span style="color:#4E4E57">pooler</span><span>pgbouncer · transaction</span>
+                </div>
+              </div>
+
+              <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:12px">
+                <div style="font-size:12px;font-weight:600">Extensions</div>
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid rgba(75,255,143,.28);background:rgba(75,255,143,.07);color:#4BFF8F;border-radius:6px">uuid-ossp</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid rgba(75,255,143,.28);background:rgba(75,255,143,.07);color:#4BFF8F;border-radius:6px">pgcrypto</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid rgba(75,255,143,.28);background:rgba(75,255,143,.07);color:#4BFF8F;border-radius:6px">pg_stat_statements</span>
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid rgba(255,255,255,.08);color:#5A5A63;border-radius:6px">+ vector</span>
+                </div>
+                <div style="height:1px;background:rgba(255,255,255,.06)"></div>
+                <div style="font-size:12px;font-weight:600">Backups</div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">
+                  <span style="color:#4E4E57">last</span><span>today 04:00 · 812 MB</span>
+                  <span style="color:#4E4E57">retention</span><span>7 daily · 4 weekly</span>
+                  <span style="color:#4E4E57">wal</span><span style="color:#4BFF8F">streaming</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isCreds }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ roles }}" as="r" hint-placeholder-count="2">
+                <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:13px">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:13.5px">{{ r.name }}</span>
+                    <span style="font-size:10.5px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:5px;border:1px solid {{ r.border }};background:{{ r.bg }};color:{{ r.fg }}">{{ r.kind }}</span>
+                    <span style="font-size:11.5px;color:#5A5A63">{{ r.grants }}</span>
+                    <button type="button" onClick="{{ r.copy }}" style="margin-left:auto;padding:6px 11px;border:1px solid rgba(255,255,255,.1);border-radius:7px;background:transparent;color:#8A8A93;font-family:Geist,sans-serif;font-size:12px;cursor:pointer" style-hover="color:#4BFF8F;border-color:rgba(75,255,143,.4)">{{ r.copyLabel }}</button>
+                  </div>
+                  <div style="padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:#0C0C0F;overflow-x:auto;overflow-y:hidden">
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8DFFBD;white-space:nowrap">{{ r.uri }}</span>
+                  </div>
+                  <div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">
+                    <span><span style="color:#4E4E57">user </span>{{ r.name }}</span>
+                    <span><span style="color:#4E4E57">password </span>{{ r.secret }}</span>
+                    <span><span style="color:#4E4E57">rotated </span>{{ r.rotated }}</span>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="padding:14px 16px;border:1px dashed rgba(255,255,255,.1);border-radius:11px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#4BFF8F">$</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93">{{ cliRole }}</span>
+                <span style="margin-left:auto;font-size:11px;color:#4E4E57">least-privilege by default: no CREATE, no superuser</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isSchema }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(255,255,255,.015);flex-wrap:wrap">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#4BFF8F">$</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93">{{ cliIntrospect }}</span>
+                <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">schema public · introspected 12s ago</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+                <sc-for list="{{ tables }}" as="t" hint-placeholder-count="4">
+                  <div style="border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);overflow:hidden">
+                    <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)">
+                      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#EDEDED">{{ t.name }}</span>
+                      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#5A5A63">{{ t.rows }} rows</span>
+                    </div>
+                    <div style="padding:6px 0">
+                      <sc-for list="{{ t.cols }}" as="c" hint-placeholder-count="4">
+                        <div style="display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 64px;gap:10px;padding:5px 14px;align-items:center">
+                          <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:{{ c.color }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.name }}</span>
+                          <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#5A5A63;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.type }}</span>
+                          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#4E4E57;text-align:right">{{ c.flag }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isLogs }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid rgba(255,255,255,.07);border-radius:12px;background:#0B0B0E;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)">
+                <span style="width:6px;height:6px;border-radius:50%;background:#4BFF8F;box-shadow:0 0 8px #4BFF8F;animation:vpsql-pulse 1.6s infinite"></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">tailing postgres log · {{ db.name }}</span>
+                <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">last 200 lines</span>
+              </div>
+              <div style="padding:10px 0;max-height:440px;overflow:auto">
+                <sc-for list="{{ logs }}" as="l" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:92px 74px 1fr;gap:12px;padding:3px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7" style-hover="background:rgba(255,255,255,.03)">
+                    <span style="color:#4E4E57">{{ l.time }}</span>
+                    <span style="color:{{ l.color }}">{{ l.level }}</span>
+                    <span style="color:#8A8A93">{{ l.msg }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isRoles }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;animation:vpsql-fade .18s ease">
+          <div>
+            <h1 style="margin:0 0 5px;font-size:19px;font-weight:600;letter-spacing:-.015em">Roles &amp; grants</h1>
+            <p style="margin:0;font-size:13px;color:#5A5A63">Every database is provisioned with one owner and one read-only role. Nothing inherits superuser.</p>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);overflow:hidden">
+            <div style="overflow-x:auto;overflow-y:hidden">
+            <div style="display:grid;grid-template-columns:minmax(160px,1.6fr) 110px minmax(140px,1.4fr) minmax(120px,1fr) 100px;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;color:#4E4E57;min-width:700px">
+              <span>Role</span><span>Kind</span><span>Database</span><span>Grants</span><span>Rotated</span>
+            </div>
+            <sc-for list="{{ allRoles }}" as="r" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:minmax(160px,1.6fr) 110px minmax(140px,1.4fr) minmax(120px,1fr) 100px;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.045);align-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;min-width:700px" style-hover="background:rgba(255,255,255,.03)">
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</span>
+                <span style="color:{{ r.fg }};font-size:11px">{{ r.kind }}</span>
+                <span style="color:#8A8A93;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.db }}</span>
+                <span style="color:#8A8A93;font-size:11px">{{ r.grants }}</span>
+                <span style="color:#5A5A63;font-size:11px">{{ r.rotated }}</span>
+              </div>
+            </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isActivity }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;animation:vpsql-fade .18s ease">
+          <div>
+            <h1 style="margin:0 0 5px;font-size:19px;font-weight:600;letter-spacing:-.015em">Activity</h1>
+            <p style="margin:0;font-size:13px;color:#5A5A63">Audit trail of every control-plane mutation, API or CLI.</p>
+          </div>
+          <div style="border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);overflow:hidden">
+            <sc-for list="{{ activity }}" as="a" hint-placeholder-count="7">
+              <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.045);flex-wrap:wrap" style-hover="background:rgba(255,255,255,.03)">
+                <span style="width:6px;height:6px;border-radius:50%;background:{{ a.color }};flex:0 0 auto"></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ a.color }};min-width:120px">{{ a.action }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8A93;min-width:0">{{ a.target }}</span>
+                <span style="font-size:11.5px;color:#5A5A63">via {{ a.via }}</span>
+                <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">{{ a.time }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isNode }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:16px;animation:vpsql-fade .18s ease">
+          <div>
+            <h1 style="margin:0 0 5px;font-size:19px;font-weight:600;letter-spacing:-.015em">Node</h1>
+            <p style="margin:0;font-size:13px;color:#5A5A63">{{ nodeHost }} · 8 vCPU · 16 GB RAM · 320 GB NVMe · Debian 12</p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+            <sc-for list="{{ meters }}" as="m" hint-placeholder-count="4">
+              <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);display:flex;flex-direction:column;gap:11px">
+                <div style="display:flex;align-items:baseline;gap:8px">
+                  <span style="font-size:11px;color:#5A5A63;text-transform:uppercase;letter-spacing:.1em">{{ m.label }}</span>
+                  <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:18px;color:{{ m.color }}">{{ m.value }}</span>
+                </div>
+                <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden">
+                  <div style="height:100%;width:{{ m.pct }};background:{{ m.color }};box-shadow:0 0 12px {{ m.color }}"></div>
+                </div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">{{ m.detail }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px">
+            <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:12px;font-weight:600">postgresql.conf</div>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">
+                <span style="color:#4E4E57">max_connections</span><span>400</span>
+                <span style="color:#4E4E57">shared_buffers</span><span>4GB</span>
+                <span style="color:#4E4E57">work_mem</span><span>32MB</span>
+                <span style="color:#4E4E57">wal_level</span><span>replica</span>
+                <span style="color:#4E4E57">ssl</span><span style="color:#4BFF8F">on</span>
+              </div>
+            </div>
+            <div style="padding:16px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.022);display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:12px;font-weight:600">Control plane</div>
+              <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A8A93">
+                <span style="color:#4E4E57">api</span><span>:8080 · healthy</span>
+                <span style="color:#4E4E57">uptime</span><span>41d 06h</span>
+                <span style="color:#4E4E57">api keys</span><span>3 active</span>
+                <span style="color:#4E4E57">agent</span><span style="color:#4BFF8F">connected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeModal }}" style="position:fixed;inset:0;z-index:60;background:rgba(4,4,6,.72);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:9vh 20px">
+      <div onClick="{{ stop }}" style="width:100%;max-width:540px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(18,18,22,.92);backdrop-filter:blur(22px);box-shadow:0 0 60px -20px rgba(75,255,143,.35);animation:vpsql-fade .16s ease;overflow:hidden">
+        <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px">
+          <span style="font-size:14px;font-weight:600">Provision database</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57">POST /v1/databases</span>
+          <button type="button" onClick="{{ closeModal }}" style="margin-left:auto;border:0;background:transparent;color:#5A5A63;font-size:16px;cursor:pointer;line-height:1">×</button>
+        </div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:16px">
+          <label style="display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Database name</span>
+            <input value="{{ newName }}" onChange="{{ setName }}" placeholder="atlas_prod" style="padding:10px 12px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:#0C0C0F;color:#EDEDED;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none" style-focus="border-color:rgba(75,255,143,.55);box-shadow:0 0 0 3px rgba(75,255,143,.1)" />
+          </label>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Project</span>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <sc-for list="{{ projectChips }}" as="c" hint-placeholder-count="4">
+                <button type="button" onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Extensions</span>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <sc-for list="{{ extChips }}" as="e" hint-placeholder-count="5">
+                <button type="button" onClick="{{ e.pick }}" style="{{ e.style }}">{{ e.name }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:rgba(255,255,255,.02)">
+            <span style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#5A5A63">Roles created</span>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11.5px">
+              <span style="color:#4BFF8F">{{ previewOwner }}</span>
+              <span style="color:#4E4E57">owner · CRUD + DDL</span>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:11.5px">
+              <span style="color:#5B8CFF">{{ previewReader }}</span>
+              <span style="color:#4E4E57">read-only · SELECT on public</span>
+            </div>
+          </div>
+          <div style="padding:11px 12px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:#0C0C0F;overflow-x:auto;overflow-y:hidden">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8DFFBD;white-space:nowrap">{{ cliCreate }}</span>
+          </div>
+        </div>
+        <div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px">
+          <span style="font-size:11.5px;color:#4E4E57">~1.2s to provision</span>
+          <button type="button" onClick="{{ closeModal }}" style="margin-left:auto;padding:9px 14px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:transparent;color:#8A8A93;font-family:Geist,sans-serif;font-size:12.5px;cursor:pointer">Cancel</button>
+          <button type="button" onClick="{{ provision }}" style="{{ provisionStyle }}">{{ provisionLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ paletteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePalette }}" style="position:fixed;inset:0;z-index:70;background:rgba(4,4,6,.66);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:12vh 20px">
+      <div onClick="{{ stop }}" style="width:100%;max-width:580px;border:1px solid rgba(255,255,255,.11);border-radius:13px;background:rgba(16,16,20,.94);backdrop-filter:blur(24px);box-shadow:0 0 70px -24px rgba(75,255,143,.4);overflow:hidden;animation:vpsql-fade .14s ease">
+        <div style="display:flex;align-items:center;gap:11px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07)">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#4BFF8F">›</span>
+          <input value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search databases, roles, or run a command…" autoFocus="{{ true }}" style="flex:1;border:0;background:transparent;color:#EDEDED;font-family:Geist,sans-serif;font-size:14px;outline:none" />
+          <kbd style="font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 5px;color:#5A5A63">esc</kbd>
+        </div>
+        <div style="max-height:360px;overflow:auto;padding:6px">
+          <sc-for list="{{ results }}" as="r" hint-placeholder-count="6">
+            <button type="button" onClick="{{ r.run }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:#EDEDED;font-family:Geist,sans-serif;font-size:13px;text-align:left;cursor:pointer" style-hover="background:rgba(75,255,143,.1)">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{{ r.color }};width:62px;flex:0 0 auto">{{ r.kind }}</span>
+              <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.label }}</span>
+              <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:#4E4E57;flex:0 0 auto">{{ r.hint }}</span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:26px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:#4E4E57">no matches</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;right:22px;bottom:22px;z-index:90;display:flex;align-items:center;gap:10px;padding:11px 15px;border:1px solid rgba(75,255,143,.35);border-radius:10px;background:rgba(14,20,16,.95);backdrop-filter:blur(14px);box-shadow:0 0 34px -12px rgba(75,255,143,.6);animation:vpsql-fade .16s ease">
+      <span style="width:6px;height:6px;border-radius:50%;background:#4BFF8F;box-shadow:0 0 8px #4BFF8F"></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8DFFBD">{{ toast }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;nodeHost&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;pg-sfo-01.internal&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;cliBinary&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;vpsql&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;maskSecrets&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = {
+    view: 'databases', dbIndex: 0, tab: 'overview',
+    modal: false, palette: false, query: '', toast: '',
+    copied: '', newName: '', project: 'atlas',
+    exts: ['uuid-ossp', 'pgcrypto'], provisioning: false,
+    authed: false, signingIn: false,
+    endpoint: 'https://pg-sfo-01.internal:8080', email: 'dev@vpsql.io', password: 'correct-horse-battery'
+  };
+
+  DBS = [
+    { name: 'atlas_prod', project: 'atlas', status: 'running', size: '2.4 GB', conns: '18/100', owner: 'atlas_prod_owner', created: '14 Mar' },
+    { name: 'atlas_staging', project: 'atlas', status: 'running', size: '840 MB', conns: '4/100', owner: 'atlas_stg_owner', created: '14 Mar' },
+    { name: 'billing_core', project: 'billing', status: 'running', size: '12.8 GB', conns: '41/200', owner: 'billing_owner', created: '02 Feb' },
+    { name: 'metrics_tsdb', project: 'observability', status: 'running', size: '31.2 GB', conns: '7/50', owner: 'metrics_owner', created: '19 Jan' },
+    { name: 'lumen_dev', project: 'lumen', status: 'idle', size: '120 MB', conns: '0/50', owner: 'lumen_dev_owner', created: '08 Sep' },
+    { name: 'cron_jobs', project: 'billing', status: 'provisioning', size: '—', conns: '0/25', owner: 'cron_owner', created: 'now' }
+  ];
+
+  PROJECTS = [
+    { name: 'atlas', color: '#4BFF8F', count: 2 },
+    { name: 'billing', color: '#5B8CFF', count: 2 },
+    { name: 'observability', color: '#FFB020', count: 1 },
+    { name: 'lumen', color: '#C77DFF', count: 1 }
+  ];
+
+  TABLES = [
+    { name: 'users', rows: '184k', cols: [
+      { name: 'id', type: 'uuid', flag: 'PK' }, { name: 'email', type: 'citext', flag: 'UNIQ' },
+      { name: 'org_id', type: 'uuid', flag: 'FK' }, { name: 'password_hash', type: 'text', flag: '' },
+      { name: 'created_at', type: 'timestamptz', flag: '' }] },
+    { name: 'organizations', rows: '3.2k', cols: [
+      { name: 'id', type: 'uuid', flag: 'PK' }, { name: 'slug', type: 'text', flag: 'UNIQ' },
+      { name: 'plan', type: 'plan_tier', flag: 'ENUM' }, { name: 'seats', type: 'int4', flag: '' }] },
+    { name: 'sessions', rows: '41k', cols: [
+      { name: 'id', type: 'uuid', flag: 'PK' }, { name: 'user_id', type: 'uuid', flag: 'FK' },
+      { name: 'ip', type: 'inet', flag: '' }, { name: 'expires_at', type: 'timestamptz', flag: 'IDX' }] },
+    { name: 'invoices', rows: '22k', cols: [
+      { name: 'id', type: 'uuid', flag: 'PK' }, { name: 'org_id', type: 'uuid', flag: 'FK' },
+      { name: 'amount_cents', type: 'int8', flag: '' }, { name: 'status', type: 'text', flag: 'IDX' },
+      { name: 'issued_at', type: 'timestamptz', flag: '' }] },
+    { name: 'audit_log', rows: '1.9M', cols: [
+      { name: 'id', type: 'bigserial', flag: 'PK' }, { name: 'actor', type: 'text', flag: '' },
+      { name: 'action', type: 'text', flag: 'IDX' }, { name: 'payload', type: 'jsonb', flag: 'GIN' }] }
+  ];
+
+  LOGS = [
+    { time: '14:22:07.918', level: 'LOG', msg: 'connection authorized: user=atlas_prod_owner database=atlas_prod SSL=on' },
+    { time: '14:22:08.104', level: 'LOG', msg: 'duration: 1.842 ms  statement: SELECT id, email FROM users WHERE org_id = $1' },
+    { time: '14:22:11.556', level: 'LOG', msg: 'automatic vacuum of table "public.sessions": index scans: 1' },
+    { time: '14:22:14.023', level: 'WARN', msg: 'temporary file: path "base/pgsql_tmp/pgsql_tmp8821.0", size 21942272' },
+    { time: '14:22:19.771', level: 'LOG', msg: 'duration: 0.412 ms  statement: INSERT INTO audit_log (actor, action, payload) VALUES ($1,$2,$3)' },
+    { time: '14:22:24.330', level: 'ERROR', msg: 'duplicate key value violates unique constraint "users_email_key"' },
+    { time: '14:22:24.331', level: 'DETAIL', msg: 'Key (email)=(dev@vpsql.io) already exists.' },
+    { time: '14:22:31.902', level: 'LOG', msg: 'checkpoint complete: wrote 412 buffers (2.5%); sync files=18, longest=0.011 s' },
+    { time: '14:22:40.117', level: 'LOG', msg: 'role "atlas_prod_reader" granted SELECT on 5 relations in schema public' },
+    { time: '14:22:48.664', level: 'LOG', msg: 'disconnection: session time 0:00:40.746 user=atlas_prod_reader' }
+  ];
+
+  ACTIVITY = [
+    { action: 'db.create', target: 'cron_jobs', via: 'CLI', time: '2m ago', color: '#4BFF8F' },
+    { action: 'role.rotate', target: 'billing_owner', via: 'API', time: '18m ago', color: '#5B8CFF' },
+    { action: 'schema.introspect', target: 'atlas_prod', via: 'dashboard', time: '41m ago', color: '#8A8A93' },
+    { action: 'db.backup', target: 'metrics_tsdb', via: 'scheduler', time: '3h ago', color: '#8A8A93' },
+    { action: 'grant.revoke', target: 'lumen_dev_reader', via: 'CLI', time: '6h ago', color: '#FFB020' },
+    { action: 'db.create', target: 'lumen_dev', via: 'API', time: '13d ago', color: '#4BFF8F' },
+    { action: 'node.config', target: 'max_connections 300 → 400', via: 'dashboard', time: '21d ago', color: '#FFB020' }
+  ];
+
+  METERS = [
+    { label: 'CPU', value: '34%', pct: '34%', color: '#4BFF8F', detail: 'load 1m 2.71 · 8 vCPU' },
+    { label: 'Memory', value: '61%', pct: '61%', color: '#4BFF8F', detail: '9.8 / 16 GB · buffers 4 GB' },
+    { label: 'Disk', value: '15%', pct: '15%', color: '#5B8CFF', detail: '47.4 / 320 GB NVMe' },
+    { label: 'IOPS', value: '1.2k', pct: '28%', color: '#5B8CFF', detail: 'read 340 · write 890' }
+  ];
+
+  EXTS = ['uuid-ossp', 'pgcrypto', 'pg_stat_statements', 'vector', 'postgis', 'timescaledb'];
+
+  componentDidMount() {
+    this.onKey = (e) => {
+      if (!this.state.authed) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        this.setState(s => ({ palette: !s.palette, query: '' }));
+      } else if (e.key === 'Escape') {
+        this.setState({ palette: false, modal: false });
+      }
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: '' }), 1900);
+  }
+  copy(text, msg) {
+    if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+    this.flash(msg);
+  }
+  nav(id) { return { padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '9px', width: '100%', border: 0, borderRadius: '8px', textAlign: 'left', fontFamily: 'Geist, sans-serif', fontSize: '13px', cursor: 'pointer', background: this.state.view === id ? 'rgba(75,255,143,.1)' : 'transparent', color: this.state.view === id ? '#4BFF8F' : '#8A8A93', boxShadow: this.state.view === id ? 'inset 0 0 0 1px rgba(75,255,143,.25)' : 'none' }; }
+  tabStyle(id) { const on = this.state.tab === id; return { padding: '9px 14px', border: 0, background: 'transparent', color: on ? '#EDEDED' : '#5A5A63', fontFamily: 'Geist, sans-serif', fontSize: '13px', cursor: 'pointer', borderBottom: on ? '2px solid #4BFF8F' : '2px solid transparent', marginBottom: '-1px' }; }
+  chip(on) { return { padding: '6px 10px', borderRadius: '7px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', cursor: 'pointer', border: on ? '1px solid rgba(75,255,143,.45)' : '1px solid rgba(255,255,255,.1)', background: on ? 'rgba(75,255,143,.1)' : 'transparent', color: on ? '#4BFF8F' : '#8A8A93' }; }
+
+  renderVals() {
+    const s = this.state;
+    const host = this.props.nodeHost ?? 'pg-sfo-01.internal';
+    const bin = this.props.cliBinary ?? 'vpsql';
+    const mask = this.props.maskSecrets ?? true;
+    const db = this.DBS[s.dbIndex];
+    const secret = (v) => mask ? '••••••••••••' : v;
+    const uri = (role, pw) => 'postgresql://' + role + ':' + (mask ? '••••••••' : pw) + '@' + host + ':5432/' + db.name + '?sslmode=require';
+    const adminUri = uri(db.owner, 'x7Kq2fLp9Twz');
+    const readerUri = uri(db.name.split('_')[0] + '_reader', 'r4Nm8sQe1Vbd');
+    const dot = (st) => st === 'running' ? '#4BFF8F' : st === 'idle' ? '#5A5A63' : '#FFB020';
+
+    const open = (i) => () => this.setState({ view: 'detail', dbIndex: i, tab: 'overview', palette: false });
+
+    const results = (() => {
+      const q = s.query.trim().toLowerCase();
+      const items = [
+        ...this.DBS.map((d, i) => ({ kind: 'database', color: '#4BFF8F', label: d.name, hint: d.project, run: open(i) })),
+        { kind: 'action', color: '#5B8CFF', label: 'Provision new database', hint: 'db create', run: () => this.setState({ palette: false, modal: true }) },
+        { kind: 'action', color: '#5B8CFF', label: 'Copy connection string · ' + db.name, hint: '⏎', run: () => { this.copy(adminUri, 'connection string copied'); this.setState({ palette: false }); } },
+        { kind: 'action', color: '#5B8CFF', label: 'Introspect schema · ' + db.name, hint: 'schema pull', run: () => this.setState({ palette: false, view: 'detail', tab: 'schema' }) },
+        { kind: 'action', color: '#FFB020', label: 'Rotate owner credentials', hint: 'role rotate', run: () => { this.copy('', 'rotation queued'); this.setState({ palette: false }); } },
+        { kind: 'go', color: '#8A8A93', label: 'Roles & grants', hint: '', run: () => this.setState({ palette: false, view: 'roles' }) },
+        { kind: 'go', color: '#8A8A93', label: 'Activity log', hint: '', run: () => this.setState({ palette: false, view: 'activity' }) },
+        { kind: 'go', color: '#8A8A93', label: 'Node metrics', hint: '', run: () => this.setState({ palette: false, view: 'node' }) }
+      ];
+      return q ? items.filter(i => i.label.toLowerCase().includes(q) || i.kind.includes(q)) : items;
+    })();
+
+    const allRoles = this.DBS.flatMap(d => ([
+      { name: d.owner, kind: 'owner', fg: '#4BFF8F', db: d.name, grants: 'CRUD + DDL', rotated: '14d ago' },
+      { name: d.name.split('_')[0] + '_reader', kind: 'read-only', fg: '#5B8CFF', db: d.name, grants: 'SELECT', rotated: '14d ago' }
+    ])).slice(0, 8);
+
+    const newName = s.newName || 'atlas_prod';
+
+    return {
+      showLogin: !s.authed,
+      loginEndpoint: s.endpoint, loginEmail: s.email, loginPassword: s.password,
+      userInitial: (s.email[0] || 'd').toUpperCase(),
+      setEndpoint: (e) => this.setState({ endpoint: e.target.value }),
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      setPassword: (e) => this.setState({ password: e.target.value }),
+      cliLogin: bin + ' auth login --endpoint ' + s.endpoint,
+      signInLabel: s.signingIn ? 'Authenticating…' : 'Sign in',
+      signInStyle: { marginTop: '4px', padding: '11px 15px', border: 0, borderRadius: '9px', background: s.signingIn ? 'rgba(75,255,143,.4)' : '#4BFF8F', color: '#04140B', fontFamily: 'Geist, sans-serif', fontSize: '13px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 26px -8px rgba(75,255,143,.8)' },
+      signIn: () => {
+        if (s.signingIn) return;
+        this.setState({ signingIn: true });
+        setTimeout(() => { this.setState({ signingIn: false, authed: true, view: 'databases' }); this.flash('session established · token cached'); }, 950);
+      },
+      signOut: () => this.setState({ authed: false, palette: false, modal: false, view: 'databases' }),
+      nodeHost: host,
+      dbCount: String(this.DBS.length).padStart(2, '0'),
+      crumb: s.view === 'detail' ? db.name : s.view,
+      isDatabases: s.view === 'databases', isDetail: s.view === 'detail',
+      isRoles: s.view === 'roles', isActivity: s.view === 'activity', isNode: s.view === 'node',
+      isOverview: s.tab === 'overview', isCreds: s.tab === 'credentials', isSchema: s.tab === 'schema', isLogs: s.tab === 'logs',
+      navDatabases: this.nav('databases'), navRoles: this.nav('roles'), navActivity: this.nav('activity'), navNode: this.nav('node'),
+      tabS0: this.tabStyle('overview'), tabS1: this.tabStyle('credentials'), tabS2: this.tabStyle('schema'), tabS3: this.tabStyle('logs'),
+      goDatabases: () => this.setState({ view: 'databases' }),
+      goRoles: () => this.setState({ view: 'roles' }),
+      goActivity: () => this.setState({ view: 'activity' }),
+      goNode: () => this.setState({ view: 'node' }),
+      tabOverview: () => this.setState({ tab: 'overview' }),
+      tabCreds: () => this.setState({ tab: 'credentials' }),
+      tabSchema: () => this.setState({ tab: 'schema' }),
+      tabLogs: () => this.setState({ tab: 'logs' }),
+      projects: this.PROJECTS.map(p => ({ ...p, open: () => this.setState({ view: 'databases' }) })),
+      databases: this.DBS.map((d, i) => ({ ...d, dot: dot(d.status), open: open(i) })),
+      db, adminUri, tableCount: String(this.TABLES.length).padStart(2, '0'),
+      copyPrimary: () => this.copy(adminUri, 'connection string copied'),
+      copyLabel: s.toast ? 'Copied ✓' : 'Copy connection string',
+      roles: [
+        { name: db.owner, kind: 'owner', border: 'rgba(75,255,143,.35)', bg: 'rgba(75,255,143,.08)', fg: '#4BFF8F', grants: 'SELECT · INSERT · UPDATE · DELETE · DDL', uri: adminUri, secret: secret('x7Kq2fLp9Twz'), rotated: '14d ago', copyLabel: 'Copy URI', copy: () => this.copy(adminUri, 'owner URI copied') },
+        { name: db.name.split('_')[0] + '_reader', kind: 'read-only', border: 'rgba(91,140,255,.35)', bg: 'rgba(91,140,255,.08)', fg: '#5B8CFF', grants: 'SELECT on schema public', uri: readerUri, secret: secret('r4Nm8sQe1Vbd'), rotated: '14d ago', copyLabel: 'Copy URI', copy: () => this.copy(readerUri, 'read-only URI copied') }
+      ],
+      allRoles,
+      tables: this.TABLES.map(t => ({ ...t, cols: t.cols.map(c => ({ ...c, color: c.flag === 'PK' ? '#4BFF8F' : c.flag === 'FK' ? '#5B8CFF' : '#EDEDED' })) })),
+      logs: this.LOGS.map(l => ({ ...l, color: l.level === 'ERROR' ? '#FF5C5C' : l.level === 'WARN' ? '#FFB020' : l.level === 'DETAIL' ? '#5A5A63' : '#4BFF8F' })),
+      activity: this.ACTIVITY, meters: this.METERS,
+      cliList: bin + ' db ls --json | jq \'.[] | {name, size, connections}\'',
+      cliRole: bin + ' role create ' + db.name + '_reader --db ' + db.name + ' --read-only',
+      cliIntrospect: bin + ' schema pull ' + db.name + ' --format table',
+      cliCreate: bin + ' db create ' + newName + ' --project ' + s.project + ' --ext ' + (s.exts.join(',') || 'none'),
+      modalOpen: s.modal, paletteOpen: s.palette, toast: s.toast,
+      openModal: () => this.setState({ modal: true }),
+      closeModal: () => this.setState({ modal: false, provisioning: false }),
+      openPalette: () => this.setState({ palette: true, query: '' }),
+      closePalette: () => this.setState({ palette: false }),
+      stop: (e) => e.stopPropagation(),
+      query: s.query, setQuery: (e) => this.setState({ query: e.target.value }),
+      results, noResults: results.length === 0,
+      newName: s.newName, setName: (e) => this.setState({ newName: e.target.value }),
+      previewOwner: newName + '_owner', previewReader: newName.split('_')[0] + '_reader',
+      projectChips: this.PROJECTS.map(p => ({ name: p.name, style: this.chip(s.project === p.name), pick: () => this.setState({ project: p.name }) })),
+      extChips: this.EXTS.map(e => ({ name: e, style: this.chip(s.exts.includes(e)), pick: () => this.setState(st => ({ exts: st.exts.includes(e) ? st.exts.filter(x => x !== e) : [...st.exts, e] })) })),
+      provisionLabel: s.provisioning ? 'Provisioning…' : 'Provision',
+      provisionStyle: { padding: '9px 15px', border: 0, borderRadius: '8px', background: s.provisioning ? 'rgba(75,255,143,.35)' : '#4BFF8F', color: '#04140B', fontFamily: 'Geist, sans-serif', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 22px -6px rgba(75,255,143,.7)' },
+      provision: () => {
+        this.setState({ provisioning: true });
+        setTimeout(() => { this.setState({ modal: false, provisioning: false }); this.flash('database ' + newName + ' provisioned'); }, 1200);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #09090B;
+  --foreground: #EDEDED;
+  --accent: #4BFF8F;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #09090B;
+  color: #EDEDED;
+  font-family: Geist, 'Helvetica Neue', Helvetica, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: #4BFF8F;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #8DFFBD;
+}
+
+::selection {
+  background: rgba(75, 255, 143, 0.25);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes vpsql-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@keyframes vpsql-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes vpsql-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-vpsql-pulse {
+  animation: vpsql-pulse 2.4s ease-in-out infinite;
+}
+
+.animate-vpsql-fade {
+  animation: vpsql-fade 0.18s ease forwards;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}

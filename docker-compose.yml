@@ -1,0 +1,168 @@
+services:
+  vpsql-db:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    image: vpsql-postgres:16-vector
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5434}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vpsql-net
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    environment:
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_HOST: vpsql-db
+      DB_PORT: 5432
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 20
+      AUTH_TYPE: scram-sha-256
+      AUTH_USER: ${POSTGRES_USER:-postgres}
+      AUTH_QUERY: "SELECT rolname, rolpassword FROM pg_authid WHERE rolname=$$1"
+      ADMIN_USERS: ${POSTGRES_USER:-postgres}
+    ports:
+      - "${PGBOUNCER_PORT:-6432}:5432"
+    depends_on:
+      vpsql-db:
+        condition: service_healthy
+    networks:
+      - vpsql-net
+
+  vpsql-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-change-me}
+      --maxmemory ${REDIS_MAXMEMORY:-512mb}
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+    ports:
+      - "${REDIS_HOST_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change-me}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vpsql-net
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${API_HOST_PORT:-8088}:8080"
+    environment:
+      PORT: 8080
+      POSTGRES_HOST: vpsql-db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_SSLMODE: disable
+      PGBOUNCER_HOST: pgbouncer
+      PGBOUNCER_PORT: 6432
+      REDIS_HOST: vpsql-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change-me}
+      PUBLIC_HOST: ${PUBLIC_HOST:-db.example.com}
+      PUBLIC_PORT: ${PUBLIC_PORT:-6432}
+      PUBLIC_DIRECT_PORT: ${PUBLIC_DIRECT_PORT:-5434}
+      PUBLIC_REDIS_PORT: ${PUBLIC_REDIS_PORT:-6380}
+      PUBLIC_REDIS_TLS: ${PUBLIC_REDIS_TLS:-false}
+      NODE_HOST: ${NODE_HOST:-db.example.com}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-https://auth.example.com}
+      ADMIN_MASTER_KEY: ${ADMIN_MASTER_KEY:-eo_master_live_d84f912b7a0e44319c72e293817a0b6e}
+      AUTH_MASTER_KEY: ${AUTH_MASTER_KEY:-eo_master_live_d84f912b7a0e44319c72e293817a0b6e}
+      AI_UPSTREAM_KEY: ${AI_UPSTREAM_KEY:-change-me}
+      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID:-${CLOUDFLARE_ACCOUNT_ID:-}}
+      CF_API_TOKEN: ${CF_API_TOKEN:-${CLOUDFLARE_API_TOKEN:-}}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-${CF_ACCOUNT_ID:-}}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-${CF_API_TOKEN:-}}
+      AI_IMAGES_DIR: ${AI_IMAGES_DIR:-/data/images}
+      AI_IMAGES_PUBLIC_BASE: ${AI_IMAGES_PUBLIC_BASE:-https://vpsql.example.com}
+      BACKUP_DIR: ${BACKUP_DIR:-/data/backups}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+      BACKUP_SCHEDULE_HOUR: ${BACKUP_SCHEDULE_HOUR:-3}
+      STORAGE_DIR: ${STORAGE_DIR:-/data/storage}
+      STORAGE_PUBLIC_BASE: ${STORAGE_PUBLIC_BASE:-https://vpsql.example.com}
+      S3_ENABLED: ${S3_ENABLED:-false}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+    volumes:
+      - ai_images_data:/data/images
+      - vpsql_backups:/data/backups
+      - vpsql_storage:/data/storage
+    depends_on:
+      vpsql-db:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      vpsql-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - vpsql-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_HOST_PORT:-3030}:3000"
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:8080
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+    depends_on:
+      - api
+    networks:
+      - vpsql-net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  ai_images_data:
+    driver: local
+  vpsql_backups:
+    driver: local
+  vpsql_storage:
+    driver: local
+
+
+networks:
+  vpsql-net:
+    driver: bridge
